@@ -57,6 +57,13 @@ export function planeYFor(depth: number, viewportHeight: number): number {
   return frontY + (backY - frontY) * depth
 }
 
+/** Inverse of planeYFor: which plane a screen y lands on, clamped to 0..1. */
+export function depthForY(y: number, viewportHeight: number): number {
+  const frontY = groundYFor(viewportHeight)
+  const backY = viewportHeight * BOY_BACK_RATIO
+  return Math.min(1, Math.max(0, (y - frontY) / (backY - frontY)))
+}
+
 export function scaleFor(depth: number): number {
   return BOY_FRONT_SCALE + (BOY_BACK_SCALE - BOY_FRONT_SCALE) * depth
 }
@@ -101,6 +108,7 @@ export function createGameState(viewportHeight: number): GameState {
     popups: [],
     party: null,
     lastPartyAt: -Infinity,
+    sounds: [],
     mouthWorldX: 0,
     mouthY: groundY + MOUTH_Y,
     food: [],
@@ -177,8 +185,11 @@ function updateAbsorption(state: GameState, held: boolean, viewport: Viewport): 
         state.lastSickAt = state.timeSec
       }
       // Friends get the rain cloud instead of a cheer.
-      if (!isFriend(food.kind)) {
+      if (isFriend(food.kind)) {
+        state.sounds.push('friend')
+      } else {
         state.popups.push({ x: state.mouthWorldX, y: state.mouthY, at: state.timeSec })
+        state.sounds.push('snack')
       }
       if (state.snacksEaten % PARTY_EVERY === 0) startParty(state, viewport)
       continue
@@ -205,8 +216,15 @@ export function update(state: GameState, dt: number, held: HeldKeys, viewport: V
   state.walkPhase += stepsPerSec * Math.PI * 2 * dt
 
   // Up pushes him back into the scene rather than lifting him off the ground.
-  if (held.up) state.depthTarget += DEPTH_SPEED * dt
-  if (held.down) state.depthTarget -= DEPTH_SPEED * dt
+  if (held.pointerY !== null) {
+    // Walk toward the touched plane at the same pace the keys allow.
+    const want = depthForY(held.pointerY, viewportHeight)
+    const step = Math.min(Math.abs(want - state.depthTarget), DEPTH_SPEED * dt)
+    state.depthTarget += Math.sign(want - state.depthTarget) * step
+  } else {
+    if (held.up) state.depthTarget += DEPTH_SPEED * dt
+    if (held.down) state.depthTarget -= DEPTH_SPEED * dt
+  }
   state.depthTarget = Math.min(1, Math.max(0, state.depthTarget))
   state.depth += (state.depthTarget - state.depth) * (1 - Math.exp(-DEPTH_SMOOTH_RATE * dt))
 

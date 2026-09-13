@@ -44,6 +44,8 @@ export interface Party {
   pieces: PartyPiece[]
 }
 
+export type SoundEvent = 'snack' | 'friend'
+
 export interface GameState {
   /** World-space x of the boy's head; the body trails off to the left. */
   worldX: number
@@ -80,6 +82,8 @@ export interface GameState {
   party: Party | null
   /** timeSec the last party started; -Infinity before the first. */
   lastPartyAt: number
+  /** Sounds raised this frame; the game loop plays and clears them. */
+  sounds: SoundEvent[]
   /** Mouth position, kept on state so food can fly to it and eating can measure from it. */
   mouthWorldX: number
   mouthY: number
@@ -92,6 +96,8 @@ export interface HeldKeys {
   up: boolean
   down: boolean
   eat: boolean
+  /** Canvas-space y of a held pointer (touch or mouse), or null. He steers toward its plane. */
+  pointerY: number | null
 }
 
 export interface Viewport {

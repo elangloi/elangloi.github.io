@@ -1,13 +1,13 @@
 export const BASE_SPEED = 165 // world px/sec
 
 /* ---------- special snacks (indices into FOOD_FNS in render.ts) ---------- */
-export const CAR_KIND = 6
-export const FAIRY_KIND = 7
-export const FRIEND_KIND = 8
-export const GIRAFFE_KIND = 9
-export const FRIEND_KINDS = [FAIRY_KIND, FRIEND_KIND, GIRAFFE_KIND]
 /** Plain snacks are the kinds below this; specials roll separately in spawnFood. */
-export const PLAIN_FOOD_KIND_COUNT = 6
+export const PLAIN_FOOD_KIND_COUNT = 10
+export const CAR_KIND = 10
+export const FAIRY_KIND = 11
+export const FRIEND_KIND = 12
+export const GIRAFFE_KIND = 13
+export const FRIEND_KINDS = [FAIRY_KIND, FRIEND_KIND, GIRAFFE_KIND]
 export const CAR_SPAWN_CHANCE = 0.28
 export const FRIEND_SPAWN_CHANCE = 0.18 // split evenly across FRIEND_KINDS
 
@@ -30,6 +30,10 @@ export const PARTY_GRAVITY = 1100 // px/sec² — floaty enough to reach the sky
 export const PARTY_BOUNCE = 0.86 // velocity kept on each bounce; keeps them lively
 export const PARTY_MIN_LAUNCH = 650 // px/sec, initial upward kick range
 export const PARTY_MAX_LAUNCH = 1250
+
+/* ---------- day / night ---------- */
+export const DAY_LENGTH_SEC = 150 // one full dawn-to-dawn loop
+export const DAY_START_PHASE = 0.16 // begin mid-morning, sun already up
 
 /* ---------- sick ---------- */
 export const SICK_DUR = 3.5 // seconds of queasiness after a friend

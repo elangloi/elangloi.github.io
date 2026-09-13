@@ -1,11 +1,14 @@
-import { Zap } from 'lucide-react'
+import { Volume2, VolumeX, Zap } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { strawberry } from '@/game/noby-sprites.js'
 import SpriteIcon from './SpriteIcon'
 
 interface HudProps {
   snacksEaten: number
   speedBoosts: number
+  muted: boolean
+  onToggleMuted: () => void
 }
 
 function Key({ children }: { children: React.ReactNode }) {
@@ -16,12 +19,14 @@ function Key({ children }: { children: React.ReactNode }) {
   )
 }
 
-export default function Hud({ snacksEaten, speedBoosts }: HudProps) {
+export default function Hud({ snacksEaten, speedBoosts, muted, onToggleMuted }: HudProps) {
   return (
-    <header className="grid h-12 shrink-0 grid-cols-[1fr_auto_1fr] items-center px-4 font-bubbly text-sm">
-      <span className="text-2xl font-bold leading-none text-noby-pink">nobynoby</span>
+    // On phones the bar collapses: smaller title, key hints hidden (touch drives
+    // the game there), and the counters shrink to icon + number.
+    <header className="grid h-10 shrink-0 grid-cols-[auto_1fr_auto] items-center gap-2 px-3 font-bubbly text-sm md:h-12 md:grid-cols-[1fr_auto_1fr] md:px-4">
+      <span className="text-lg font-bold leading-none text-noby-pink md:text-2xl">nobynoby</span>
 
-      <div className="flex items-center gap-4 text-muted-foreground">
+      <div className="hidden items-center gap-4 text-muted-foreground md:flex">
         <span className="flex items-center gap-1.5">
           <Key>↑</Key>
           <Key>↓</Key>
@@ -32,19 +37,39 @@ export default function Hud({ snacksEaten, speedBoosts }: HudProps) {
           <span>hold to eat</span>
         </span>
       </div>
+      <span className="truncate text-center text-xs text-muted-foreground md:hidden">
+        hold to walk &amp; eat
+      </span>
 
-      <div className="flex justify-end gap-2">
-        <Badge variant="secondary" className="gap-1.5 px-2.5 py-1 text-sm font-medium tabular-nums">
+      <div className="flex justify-end gap-1.5 md:gap-2">
+        <Badge
+          variant="secondary"
+          className="gap-1 px-2 py-1 text-sm font-medium tabular-nums md:gap-1.5 md:px-2.5"
+          title="snacks eaten"
+        >
           <SpriteIcon draw={strawberry} size={20} />
-          ate {snacksEaten} {snacksEaten === 1 ? 'snack' : 'snacks'}
+          <span className="hidden md:inline">ate</span>
+          {snacksEaten}
+          <span className="hidden md:inline">{snacksEaten === 1 ? 'snack' : 'snacks'}</span>
         </Badge>
         <Badge
           variant="secondary"
-          className="gap-1 px-2.5 py-1 text-sm font-medium tabular-nums [&>svg]:size-3.5!"
+          className="gap-1 px-2 py-1 text-sm font-medium tabular-nums md:px-2.5 [&>svg]:size-3.5!"
           title="speed: cars add, friends take away"
         >
           <Zap className="fill-noby-pink text-noby-pink" />+{speedBoosts}
         </Badge>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label={muted ? 'unmute' : 'mute'}
+          aria-pressed={muted}
+          title={muted ? 'sound off' : 'sound on'}
+          onClick={onToggleMuted}
+          className="text-muted-foreground"
+        >
+          {muted ? <VolumeX /> : <Volume2 />}
+        </Button>
       </div>
     </header>
   )

@@ -1,6 +1,7 @@
 import { drawBoy } from './boy'
 import {
   ABSORB_DUR,
+  CAR_KIND,
   CLOUD_SPACING,
   CLOUD_SPEED,
   FG_PROP_RATIO,
@@ -28,6 +29,8 @@ import {
   SPEED_MSG_DUR,
 } from './constants'
 import { boyAnim, boyPose, cameraXFor, partyPose, planeYFor, scaleFor } from './engine'
+import { cake, candy, donut, pancake } from './snacks'
+import { dayPhase, drawHeadlights, drawNightTint, drawSky, drawStars, drawSunMoon, nightStrength } from './sky'
 import {
   PAL,
   apple,
@@ -46,7 +49,6 @@ import {
   mountain,
   mushroom,
   onigiri,
-  sky,
   strawberry,
   treeRound,
   treeTall,
@@ -66,6 +68,10 @@ const FOOD_FNS: FoodFn[] = [
   onigiri,
   mushroom,
   apple,
+  cake,
+  donut,
+  pancake,
+  candy,
   car,
   // The fairy hovers; keep her floating above the ground line like the scenery did.
   (c, x, y, s, t) => fairy(c, x, y - 60 * s, s, t),
@@ -110,7 +116,10 @@ export function render(ctx: Ctx, state: GameState, viewport: Viewport): void {
   const horizon = height * HORIZON_RATIO
   const t = state.timeSec
 
-  sky(ctx, width, height)
+  const phase = dayPhase(t)
+  drawSky(ctx, width, height, phase)
+  drawStars(ctx, width, height, phase, t)
+  drawSunMoon(ctx, width, height, phase, t)
 
   layer(ctx, cameraX, CLOUD_SPEED, CLOUD_SPACING, width, height * SKY_PROP_RATIO, (c, x, y, i) => {
     const slot = slotIndex(cameraX, CLOUD_SPEED, CLOUD_SPACING, i)
@@ -175,11 +184,13 @@ export function render(ctx: Ctx, state: GameState, viewport: Viewport): void {
     { y: fgY, draw: drawFg },
   ]
   // Each resting morsel sits on its own plane, so it sorts on its own.
+  const cars: Array<{ x: number; y: number; s: number }> = []
   for (const food of state.food) {
     if (food.absorbingSince !== null) continue
     const sx = food.x - cameraX
     if (sx < -140 || sx > width + 140) continue
     const y = planeYFor(food.depth, height)
+    if (food.kind === CAR_KIND) cars.push({ x: sx, y, s: scaleFor(food.depth) })
     bands.push({
       y,
       draw: () => FOOD_FNS[wrapIndex(food.kind, FOOD_FNS.length)](ctx, sx, y, scaleFor(food.depth), t),
@@ -188,6 +199,10 @@ export function render(ctx: Ctx, state: GameState, viewport: Viewport): void {
   bands.sort((a, b) => a.y - b.y)
   for (const band of bands) band.draw()
 
+  // Night settles over the world, but the cheers and clouds stay bright.
+  drawNightTint(ctx, width, height, phase)
+  const night = nightStrength(phase)
+  for (const car of cars) drawHeadlights(ctx, car.x, car.y, car.s, night)
   drawPopups(ctx, state, cameraX)
 
   // Whichever happened most recently gets the sky.
